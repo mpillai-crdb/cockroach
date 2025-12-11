@@ -1051,6 +1051,8 @@ type ProjectsVal struct {
 // nightly roachtest runs.
 func DefaultZones(arch string, geoDistributed bool) []string {
 	zones := []string{"us-east1-b", "us-east1-c", "us-east1-d"}
+	// TODO(manojpillai): remove arm64 special case, after reviewing usage in roachtest
+	// With c4a widely available, arm64 defaults can be same as other arch
 	if vm.ParseArch(arch) == vm.ArchARM64 {
 		// T2A instances are only available in us-central1 in NA.
 		zones = []string{"us-central1-a", "us-central1-b", "us-central1-f"}
@@ -1481,7 +1483,7 @@ func computeZones(opts vm.CreateOpts, providerOpts *ProviderOpts) ([]string, err
 			zones = []string{"us-central1-a"}
 		}
 
-		if !IsSupportedT2AZone(providerOpts.Zones) {
+		if strings.HasPrefix(strings.ToLower(providerOpts.MachineType), "t2a-") && !IsSupportedT2AZone(providerOpts.Zones) {
 			return nil, errors.Newf("T2A instances are not supported outside of [%s]", strings.Join(SupportedT2AZones, ","))
 		}
 	}
